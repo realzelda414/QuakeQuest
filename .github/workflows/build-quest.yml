@@ -26,20 +26,20 @@ jobs:
       - name: Set up Android SDK & NDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android NDK & CMake
+      - name: Install Android NDK & SDK Components
         run: |
-          sdkmanager --install "ndk;25.2.9519653" "cmake;3.22.1" "platforms;android-29"
+          sdkmanager --install "ndk;25.2.9519653" "cmake;3.22.1" "platforms;android-29" "build-tools;30.0.3"
 
-      - name: Make Gradlew Executable
+      - name: Generate Gradle Wrapper if Missing
+        working-directory: Projects/Android
         run: |
-          if [ -f "Projects/Android/gradlew" ]; then
-            chmod +x Projects/Android/gradlew
-          elif [ -f "gradlew" ]; then
-            chmod +x ./gradlew
-          fi
+          gradle wrapper
+          chmod +x gradlew
 
       - name: Build Debug APK
         working-directory: Projects/Android
+        env:
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
         run: |
           ./gradlew assembleDebug --stacktrace
 
