@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
@@ -28,19 +28,25 @@ jobs:
 
       - name: Install Android NDK & CMake
         run: |
-          sdkmanager --install "ndk;25.2.9519653" "cmake;3.22.1"
+          sdkmanager --install "ndk;25.2.9519653" "cmake;3.22.1" "platforms;android-29"
 
       - name: Make Gradlew Executable
-        run: chmod +x ./gradlew || true
+        run: |
+          if [ -f "Projects/Android/gradlew" ]; then
+            chmod +x Projects/Android/gradlew
+          elif [ -f "gradlew" ]; then
+            chmod +x ./gradlew
+          fi
 
       - name: Build Debug APK
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        working-directory: Projects/Android
         run: |
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: QuakeQuest-Standalone-VR
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            Projects/Android/build/outputs/apk/**/*.apk
+            Projects/Android/app/build/outputs/apk/**/*.apk
